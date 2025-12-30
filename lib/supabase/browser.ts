@@ -6,3 +6,6 @@ export function createBrowserClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 }
+
+// ✅ Alias für alten Import-Namen (damit Build nicht bricht)
+export const createSupabaseBrowserClient = createBrowserClient
