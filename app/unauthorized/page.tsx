@@ -1,9 +1,9 @@
-export default function Unauthorized() {
+export default function UnauthorizedPage() {
   return (
-    <main style={{ maxWidth: 700, margin: '40px auto', padding: 16 }}>
-      <h1>Kein Zugriff</h1>
-      <p>Du bist nicht als Admin freigeschaltet.</p>
-      <a href="/login">Zum Login</a>
-    </main>
+    <div style={{ minHeight: '100vh', background: '#111', color: '#fff', padding: 40 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 800 }}>Kein Zugriff ❌</h1>
+      <p style={{ opacity: 0.8 }}>Du bist eingeloggt, aber nicht Admin.</p>
+      <a href="/" style={{ color: '#fff', textDecoration: 'underline' }}>Zurück</a>
+    </div>
   )
 }
