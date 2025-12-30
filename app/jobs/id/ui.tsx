@@ -1,44 +1,51 @@
-'use client'
+import Link from "next/link"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
 
-import { useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
+export default async function JobDetailPage({ params }: { params: { id: string } }) {
+  const supabase = await createSupabaseServerClient()
 
-export default function ApplyForm({ jobId }: { jobId: string }) {
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [message, setMessage] = useState('')
-  const [ok, setOk] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("id,title,location,description")
+    .eq("id", params.id)
+    .single()
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-
-    const supabase = createSupabaseBrowserClient()
-    const { error } = await supabase.from('applications').insert({
-      job_id: jobId,
-      full_name: fullName,
-      email,
-      phone,
-      message,
-    })
-
-    if (error) return setError(error.message)
-    setOk(true)
+  if (!job) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#111", color: "#fff", padding: 24 }}>
+        <h1>Job nicht gefunden</h1>
+        <Link href="/jobs" style={{ color: "#fff", textDecoration: "underline" }}>Zurück</Link>
+      </div>
+    )
   }
 
-  if (ok) return <p>✅ Bewerbung gesendet. Danke!</p>
-
   return (
-    <form onSubmit={submit} style={{ display: 'grid', gap: 10, maxWidth: 420 }}>
-      <h2>Bewerben</h2>
-      <input placeholder="Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      <input placeholder="Telefon (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} />
-      <textarea placeholder="Nachricht" value={message} onChange={(e) => setMessage(e.target.value)} />
-      <button type="submit">Absenden</button>
-      {error && <p style={{ color: 'tomato' }}>{error}</p>}
-    </form>
+    <div style={{ minHeight: "100vh", background: "#111", color: "#fff", padding: 24 }}>
+      <Link href="/jobs" style={{ color: "#fff", textDecoration: "underline" }}>← Zurück</Link>
+
+      <h1 style={{ fontSize: 28, fontWeight: 800, marginTop: 12 }}>{job.title}</h1>
+      <div style={{ opacity: 0.7 }}>{job.location ?? ""}</div>
+
+      <div style={{ marginTop: 16, whiteSpace: "pre-wrap", opacity: 0.9 }}>
+        {job.description ?? ""}
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <Link
+          href={`/apply?jobId=${job.id}`}
+          style={{
+            display: "inline-block",
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "#fff",
+            color: "#111",
+            fontWeight: 800,
+          }}
+        >
+          Bewerben
+        </Link>
+      </div>
+    </div>
   )
 }
+
