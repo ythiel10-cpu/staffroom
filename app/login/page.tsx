@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/browser'
 
@@ -9,13 +9,28 @@ export default function LoginPage() {
   const params = useSearchParams()
   const next = params.get('next') || '/admin'
 
-  const supabase = useMemo(() => createBrowserClient(), [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('Login-Seite geladen ✅')
   const [err, setErr] = useState<string | null>(null)
 
+  // ✅ Supabase Client erst NACH Mount erstellen (so kann kein "black screen" beim Rendern passieren)
+  const [supabase, setSupabase] = useState<any>(null)
+
   useEffect(() => {
+    try {
+      const client = createBrowserClient()
+      setSupabase(client)
+      console.log('✅ supabase client ok')
+    } catch (e: any) {
+      console.error('❌ supabase client error', e)
+      setErr(String(e?.message ?? e))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!supabase) return
+
     ;(async () => {
       try {
         const { data } = await supabase.auth.getSession()
@@ -30,6 +45,11 @@ export default function LoginPage() {
   }, [supabase, router, next])
 
   const onLogin = async () => {
+    if (!supabase) {
+      setErr('Supabase Client fehlt (ENV?)')
+      return
+    }
+
     setErr(null)
     setStatus('Login läuft…')
     try {
@@ -70,6 +90,7 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+
         <button
           onClick={onLogin}
           style={{
@@ -86,6 +107,14 @@ export default function LoginPage() {
 
         <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
           next: <code>{next}</code>
+        </div>
+
+        <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
+          ENV check:{' '}
+          <code>
+            URL={String(process.env.NEXT_PUBLIC_SUPABASE_URL).slice(0, 25)}… / KEY=
+            {String(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY).slice(0, 10)}…
+          </code>
         </div>
 
         {err && (
