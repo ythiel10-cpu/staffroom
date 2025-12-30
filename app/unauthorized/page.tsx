@@ -1,13 +1,9 @@
-export default function UnauthorizedPage() {
+export default function Unauthorized() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white p-10">
-      <div className="max-w-md">
-        <h1 className="text-3xl font-bold mb-3">Kein Zugriff</h1>
-        <p className="text-zinc-300">
-          Du bist eingeloggt, aber kein Admin. Setze in Supabase in der Tabelle
-          <b> profiles </b> bei deinem User <b>role = admin</b>.
-        </p>
-      </div>
-    </div>
-  );
+    <main style={{ maxWidth: 700, margin: '40px auto', padding: 16 }}>
+      <h1>Kein Zugriff</h1>
+      <p>Du bist nicht als Admin freigeschaltet.</p>
+      <a href="/login">Zum Login</a>
+    </main>
+  )
 }

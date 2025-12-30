@@ -1,14 +1,22 @@
-"use client";
+'use client'
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { createBrowserClient } from '@/lib/supabase/browser'
 
 export default function LoginPage() {
-  const router = useRouter();
+  const supabase = createBrowserClient()
 
-  useEffect(() => {
-    router.replace("/admin");
-  }, [router]);
+  const login = async () => {
+    await supabase.auth.signInWithPassword({
+      email: 'DEINE-EMAIL',
+      password: 'DEIN-PASSWORT',
+    })
+  }
 
-  return null;
+  return (
+    <main style={{ padding: 40 }}>
+      <h1>Login</h1>
+      <button onClick={login}>Login als Admin</button>
+    </main>
+  )
 }
+

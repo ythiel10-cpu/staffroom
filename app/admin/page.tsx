@@ -1,5 +1,4 @@
-import AdminClient from "./AdminClient";
-
-export default function AdminPage() {
-  return <AdminClient />;
+export default function AdminHome() {
+  return <h1>Admin</h1>
 }
+
