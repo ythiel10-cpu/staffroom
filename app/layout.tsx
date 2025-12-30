@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Staffroom",
-  description: "Jobs & Applications",
-};
+  title: 'Staffroom',
+  description: 'Jobs & Bewerbung – Staffroom MVP',
+}
 
 export default function RootLayout({
   children,
