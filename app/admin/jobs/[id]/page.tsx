@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { createServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
-  const supabase = await createServerClient();
+export default async function JobDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const supabase = await createSupabaseServerClient();
 
   const { data: job, error } = await supabase
     .from("jobs")
@@ -25,10 +29,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   return (
     <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
       <Link href="/jobs">← Zurück</Link>
+
       <h1 style={{ fontSize: 42, marginTop: 12 }}>{job.title}</h1>
 
       <div style={{ opacity: 0.8, marginTop: 8 }}>
-        Erstellt: {job.created_at ? new Date(job.created_at).toLocaleString("de-DE") : "-"}
+        Erstellt:{" "}
+        {job.created_at
+          ? new Date(job.created_at).toLocaleString("de-DE")
+          : "-"}
       </div>
 
       <div style={{ marginTop: 20, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
@@ -53,4 +61,5 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     </main>
   );
 }
+
 
