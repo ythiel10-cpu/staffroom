@@ -22,3 +22,5 @@ export async function createSupabaseServerClient() {
     }
   )
 }
+// Alias für bestehende Imports (Fix für Vercel Build)
+export { createSupabaseServerClient as createServerClient }
