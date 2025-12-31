@@ -74,6 +74,8 @@ function ApplyInner() {
 
       setStatus("Gesendet ✅")
       setOk(true)
+      window.location.href = "/thanks"
+
     } catch (e: any) {
       setErr(String(e?.message ?? e))
       setStatus("Fehlgeschlagen ❌")

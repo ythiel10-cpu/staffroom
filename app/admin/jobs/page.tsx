@@ -1,153 +1,55 @@
-import { redirect } from "next/navigation"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import Link from "next/link";
+import { createServerClient } from "@/lib/supabase/server";
 
-export default async function AdminJobsPage() {
-  const supabase = await createSupabaseServerClient()
+export const dynamic = "force-dynamic";
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect(`/login?next=${encodeURIComponent("/admin/jobs")}`)
+export default async function JobsPage() {
+  const supabase = await createServerClient();
 
+  // Nur veröffentlichte Jobs
   const { data: jobs, error } = await supabase
     .from("jobs")
-    .select("id,title,description,published,created_at")
-    .order("created_at", { ascending: false })
-
-  async function createJob(formData: FormData) {
-    "use server"
-    const supabase = await createSupabaseServerClient()
-
-    const title = String(formData.get("title") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
-
-    if (!title) redirect("/admin/jobs")
-
-    await supabase.from("jobs").insert({
-      title,
-      description,
-      published: true,
-      is_active: true,
-      active: true,
-      created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
-    })
-
-    redirect("/admin/jobs")
-  }
-
-  async function updateJob(formData: FormData) {
-    "use server"
-    const supabase = await createSupabaseServerClient()
-
-    const id = String(formData.get("id") ?? "")
-    const title = String(formData.get("title") ?? "").trim()
-    const description = String(formData.get("description") ?? "").trim()
-    const published = formData.get("published") === "on"
-
-    if (!id) redirect("/admin/jobs")
-
-    await supabase
-      .from("jobs")
-      .update({ title, description, published })
-      .eq("id", id)
-
-    redirect("/admin/jobs")
-  }
+    .select("id, title, description, created_at")
+    .eq("published", true)
+    .order("created_at", { ascending: false });
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Jobs (Admin)</h1>
-      <p style={{ opacity: 0.8, marginTop: 8 }}>Hier kannst du Jobs anlegen und bearbeiten.</p>
+    <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 42, marginBottom: 12 }}>Jobs</h1>
+      <p style={{ opacity: 0.8, marginBottom: 24 }}>Alle offenen Stellen.</p>
 
-      {/* CREATE */}
-      <div style={{ marginTop: 18, padding: 16, border: "1px solid #333", borderRadius: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>Neuen Job anlegen</h2>
-        <form action={createJob} style={{ display: "grid", gap: 10, marginTop: 12, maxWidth: 520 }}>
-          <input
-            name="title"
-            placeholder="Titel"
-            style={{ padding: 10, borderRadius: 10 }}
-            required
-          />
-          <textarea
-            name="description"
-            placeholder="Beschreibung"
-            rows={4}
-            style={{ padding: 10, borderRadius: 10 }}
-          />
-          <button
-            type="submit"
+      {error && (
+        <div style={{ padding: 12, border: "1px solid #333", borderRadius: 8 }}>
+          Fehler beim Laden: {error.message}
+        </div>
+      )}
+
+      {!jobs?.length && !error && (
+        <div style={{ padding: 16, border: "1px solid #333", borderRadius: 8 }}>
+          Aktuell sind keine Jobs veröffentlicht.
+        </div>
+      )}
+
+      <div style={{ display: "grid", gap: 12 }}>
+        {jobs?.map((job) => (
+          <Link
+            key={job.id}
+            href={`/jobs/${job.id}`}
             style={{
-              padding: 10,
+              border: "1px solid #333",
               borderRadius: 10,
-              background: "#fff",
-              color: "#111",
-              fontWeight: 800,
-              cursor: "pointer",
+              padding: 16,
+              textDecoration: "none",
             }}
           >
-            Speichern
-          </button>
-        </form>
-      </div>
-
-      {/* LIST */}
-      <div style={{ marginTop: 18, display: "grid", gap: 14 }}>
-        {error && (
-          <pre style={{ background: "#300", padding: 12, borderRadius: 10, overflow: "auto" }}>
-            {String(error.message)}
-          </pre>
-        )}
-
-        {(jobs ?? []).map((job) => (
-          <div
-            key={job.id}
-            style={{ padding: 16, border: "1px solid #333", borderRadius: 12 }}
-          >
-            <form action={updateJob} style={{ display: "grid", gap: 10 }}>
-              <input type="hidden" name="id" value={job.id} />
-
-              <div style={{ display: "grid", gap: 8 }}>
-                <input
-                  name="title"
-                  defaultValue={job.title ?? ""}
-                  style={{ padding: 10, borderRadius: 10 }}
-                />
-                <textarea
-                  name="description"
-                  defaultValue={job.description ?? ""}
-                  rows={4}
-                  style={{ padding: 10, borderRadius: 10 }}
-                />
-              </div>
-
-              <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <input type="checkbox" name="published" defaultChecked={!!job.published} />
-                <span>Published (öffentlich sichtbar)</span>
-              </label>
-
-              <button
-                type="submit"
-                style={{
-                  padding: 10,
-                  borderRadius: 10,
-                  background: "#fff",
-                  color: "#111",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  width: 220,
-                }}
-              >
-                Update speichern
-              </button>
-
-              <div style={{ fontSize: 12, opacity: 0.7 }}>
-                id: <code>{job.id}</code>
-              </div>
-            </form>
-          </div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{job.title}</div>
+            <div style={{ opacity: 0.8, marginTop: 6 }}>
+              {(job.description || "").slice(0, 140)}
+              {(job.description || "").length > 140 ? "…" : ""}
+            </div>
+          </Link>
         ))}
       </div>
-    </div>
-  )
+    </main>
+  );
 }
