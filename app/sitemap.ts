@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { createServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+const supabase = createSupabaseServerClient();
+
 
 export const dynamic = "force-dynamic";
 

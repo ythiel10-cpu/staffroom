@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+const supabase = createSupabaseServerClient();
+
 
 type AppRow = {
   id: string

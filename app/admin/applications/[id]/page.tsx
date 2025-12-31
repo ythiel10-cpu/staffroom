@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+const supabase = createSupabaseServerClient();
+
 
 export default async function AdminApplicationDetail({ params }: { params: { id: string } }) {
   const supabase = await createSupabaseServerClient()
