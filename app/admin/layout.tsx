@@ -1,35 +1,80 @@
-import { redirect } from 'next/navigation'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import Link from "next/link"
+import { redirect } from "next/navigation"
+import { ReactNode } from "react"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
 
-async function requireAdmin() {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
   const supabase = await createSupabaseServerClient()
-  const { data: auth } = await supabase.auth.getUser()
 
-  if (!auth.user) redirect('/login')
+  // Auth check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
+  if (!user) redirect(`/login?next=${encodeURIComponent("/admin")}`)
+
+  // Role check
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', auth.user.id)
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
     .single()
 
-  if (profile?.role !== 'admin') redirect('/unauthorized')
+  if (profile?.role !== "admin") redirect(`/login?next=${encodeURIComponent("/admin")}`)
 
-  return auth.user
-}
-
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireAdmin()
+  // Server Action: Logout
+  async function logout() {
+    "use server"
+    const supabase = await createSupabaseServerClient()
+    await supabase.auth.signOut()
+    redirect("/login")
+  }
 
   return (
-    <main style={{ maxWidth: 900, margin: '30px auto', padding: 16 }}>
-      <nav style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-        <a href="/admin">Admin Home</a>
-        <a href="/admin/jobs">Jobs</a>
-        <a href="/admin/applications">Applications</a>
-        <a href="/logout">Logout</a>
-      </nav>
-      {children}
-    </main>
+    <div style={{ minHeight: "100vh", background: "#111", color: "#fff" }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: 24 }}>
+        <nav
+          style={{
+            display: "flex",
+            gap: 16,
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
+          }}
+        >
+          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+            <Link href="/admin" style={{ color: "#fff", textDecoration: "none" }}>
+              Admin Home
+            </Link>
+            <Link href="/admin/jobs" style={{ color: "#fff", textDecoration: "none" }}>
+              Jobs
+            </Link>
+            <Link href="/admin/applications" style={{ color: "#fff", textDecoration: "none" }}>
+              Applications
+            </Link>
+          </div>
+
+          <form action={logout}>
+            <button
+              type="submit"
+              style={{
+                padding: "8px 12px",
+                borderRadius: 10,
+                border: "1px solid #333",
+                background: "#fff",
+                color: "#111",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Logout
+            </button>
+          </form>
+        </nav>
+
+        {children}
+      </div>
+    </div>
   )
 }
+
